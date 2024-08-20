@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editorial Translator & Word Analyzer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #121212; /* Dark background for night mode */
+            color: #e0e0e0; /* Light text color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: #1e1e1e; /* Dark background for the main container */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 90vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #ffab40; /* Bright accent color for the heading */
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: none;
+            background-color: #2c2c2c; /* Dark textarea background */
+            color: #e0e0e0; /* Light text color */
+            box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .translate-btn {
+            padding: 10px 20px;
+            background-color: #ff5722; /* Bright button color */
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .translate-btn:hover {
+            background-color: #e64a19; /* Darker shade on hover */
+            transform: scale(1.05);
+        }
+
+        .translate-btn:active {
+            background-color: #d84315; /* Darker shade on click */
+            transform: scale(1.02);
+        }
+
+        .editorial, .result-box {
+            width: 100%;
+            padding: 20px;
+            background-color: #333; /* Dark background for result box */
+            border-radius: 10px;
+            overflow-y: auto;
+            text-align: left;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            white-space: pre-wrap; /* Maintain formatting */
+        }
+
+        .word {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .word-popup {
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            z-index: 1000;
+            text-align: left;
+            box-sizing: border-box;
+            display: none;
+        }
+
+        .word-popup p {
+            margin: 10px 0;
+            color: #e0e0e0; /* Light text color */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #e57373;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 30px;
+            text-align: center;
+        }
+
+        .close-btn:hover {
+            background-color: #ef5350;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 500;
+            display: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 8px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 8px solid #ffab40; /* Bright spinner color */
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        .footer a {
+            color: #ffab40;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Editorial Analyzer</h1>
+        <textarea id="editorialInput" placeholder="Paste your paragraph here..."></textarea>
+        <button class="translate-btn" onclick="startAnalysis()">Start Analysis</button>
+        <div id="resultBox" class="result-box"></div>
+        <div id="loadingSpinner" class="loading-spinner"></div>
+        <div id="overlay" class="overlay"></div>
+    </div>
+
+    <div id="wordPopup" class="word-popup">
+        <button class="close-btn" onclick="closePopup()">x</button>
+        <div id="wordDetails"></div>
+    </div>
+
+    <div class="footer">
+        <p>Designed by @KUNAL COPYRIGHT ©️ 2024</p>
+        <p><a href="https://lakshyanischay.blogspot.com/?m=1" target="_blank">FOLLOW</a></p>
+    </div>
+
+    <script>
+        let colorMap = {};
+
+        function startAnalysis() {
+            const editorialText = document.getElementById('editorialInput').value.trim();
+            const resultBox = document.getElementById('resultBox');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const overlay = document.getElementById('overlay');
+
+            if (!editorialText) {
+                alert('Please paste a paragraph into the text area.');
+                return;
+            }
+
+            loadingSpinner.style.display = 'block';
+            overlay.style.display = 'block';
+
+            // Split the text into words
+            const words = editorialText.split(/\s+/);
+            let colorIndex = 0;
+
+            const colorizeWord = (word) => {
+                if (!colorMap[word.toLowerCase()]) {
+                    const color = `hsl(${colorIndex * 30}, 70%, 80%)`;
+                    colorMap[word.toLowerCase()] = color;
+                    colorIndex++;
+                }
+                return colorMap[word.toLowerCase()];
+            };
+
+            const highlightedText = words.map(word => 
+                `<span style="color: ${colorizeWord(word)};" class="word">${word}</span>`
+            ).join(' ');
+
+            setTimeout(() => {
+                resultBox.innerHTML = highlightedText;
+                resultBox.style.height = 'auto';
+                loadingSpinner.style.display = 'none';
+                overlay.style.display = 'none';
+            }, 1000);
+        }
+
+        function fetchWordDetails(word) {
+            const wordPopup = document.getElementById('wordPopup');
+            const wordDetails = document.getElementById('wordDetails');
+
+            fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data[0] && data[0].meanings) {
+                        const meanings = data[0].meanings.map(meaning =>
+                            `<p><strong>Part of Speech:</strong> ${meaning.partOfSpeech}<br><strong>Definition:</strong> ${meaning.definitions[0].definition}</p>`
+                        ).join('');
+                        wordDetails.innerHTML = `
+                            <h2>Details for "${word}"</h2>
+                            ${meanings}
+                        `;
+                    } else {
+                        wordDetails.innerHTML = `
+                            <h2>Details for "${word}"</h2>
+                            <p>No definitions found.</p>
+                        `;
+                    }
+                    wordPopup.style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching word details:', error);
+                    wordDetails.innerHTML = `
+                        <h2>Details for "${word}"</h2>
+                        <p>There was an error retrieving the definition.</p>
+                    `;
+                    wordPopup.style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                });
+        }
+
+        document.getElementById('resultBox').addEventListener('click', function(event) {
+            if (event.target.classList.contains('word')) {
+                const word = event.target.textContent;
+                fetchWordDetails(word);
+            }
+        });
+
+        function closePopup() {
+            document.getElementById('wordPopup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
